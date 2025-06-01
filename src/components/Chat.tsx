@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { atom } from 'jotai';
 import { locationsAtom, visiblePointsAtom } from '../atom';
@@ -49,18 +49,19 @@ const Chat = () => {
     const [locations, setLocations] = useAtom(locationsAtom);
     const [visiblePoints, setVisiblePoints] = useAtom(visiblePointsAtom);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    // Auto-resize textarea
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+    }, [message]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setMessage(e.target.value);
     };
-
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    };
-
-    const [generalExplanation, setGeneralExplanation] = useState("");
 
     const handleSendMessage = async () => {
         const trimmedMessage = message.trim();
@@ -134,10 +135,6 @@ const Chat = () => {
         }
     };
 
-
-
-
-
     const triggerMapUpdate = (intel: string) => {
         console.log('Triggering map update based on response:', intel);
     };
@@ -193,15 +190,22 @@ const Chat = () => {
             <div className="border-t border-[#1a2b45] bg-[#050b1a] p-4">
                 <div className="flex items-center gap-2">
                     <div className="flex-grow relative max-w-[95%]">
-                        <div className="w-full p-3 bg-[#0a1628] text-cyan-200 border border-cyan-900 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 font-mono">
-                            <input
-                                type="text"
+                        <div className="w-full bg-[#0a1628] text-cyan-200 border border-cyan-900 rounded-md text-sm focus-within:ring-2 focus-within:ring-cyan-500 disabled:opacity-50 font-mono">
+                            <textarea
+                                ref={textareaRef}
                                 value={message}
                                 onChange={handleInputChange}
-                                onKeyPress={handleKeyPress}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+                                        e.preventDefault();
+                                        handleSendMessage();
+                                    }
+                                }}
                                 placeholder="Enter tactical query..."
                                 disabled={isLoading}
-                                className="w-[90%] bg-transparent text-cyan-200 placeholder-cyan-700 focus:outline-none"
+                                rows={1}
+                                style={{ resize: 'none' }}
+                                className="w-[90%] bg-transparent text-cyan-200 placeholder-cyan-700 focus:outline-none p-3 min-h-[44px]"
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-cyan-600">
                                 {isLoading ? 'PROCESSING...' : 'READY'}
