@@ -82,16 +82,22 @@ const Chat = () => {
             const fullReply = mockResponse.reply;
             let index = 0;
 
-            // Replace loading with assistant
-            setMessages((prev) => [...prev.slice(0, -1), { role: 'assistant', content: '' }]);
+            // Replace the last loading message with assistant
+            setMessages((prev) => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: 'assistant', content: '' };
+                return updated;
+            });
 
             const interval = setInterval(() => {
                 index++;
                 setMessages((prev) => {
                     const updated = [...prev];
-                    const assistantMsg = updated.find((m) => m.role === 'assistant');
-                    if (assistantMsg) assistantMsg.content = fullReply.slice(0, index);
-                    return [...updated];
+                    const assistantMsg = updated[updated.length - 1]; // Only animate the last assistant message
+                    if (assistantMsg && assistantMsg.role === 'assistant') {
+                        assistantMsg.content = fullReply.slice(0, index);
+                    }
+                    return updated;
                 });
 
                 if (index >= fullReply.length) {

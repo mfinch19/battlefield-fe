@@ -18,6 +18,7 @@ const points = [
 
 const Map = () => {
     const [visiblePoints, setVisiblePoints] = useAtom(visiblePointsAtom);
+    const [locationLabels, setLocationLabels] = useState<string[]>([]);
     const [locations, setLocations] = useAtom(locationsAtom);
 
     const createFuturisticDot = (label: string) =>
@@ -26,7 +27,7 @@ const Map = () => {
             html: `
             <div class="hud-dot">
               <div class="hud-glow" style="position: absolute; left: 7px;"></div>
-              <div class="hud-label" style="position: absolute; top: -20px; left: calc(50% + 7px); transform: translateX(-50%); text-align: center;">
+              <div class="hud-label">
                 ${label}
               </div>
             </div>
@@ -63,6 +64,31 @@ const Map = () => {
             return () => clearInterval(interval);
         }
     }, [locations]);
+
+    useEffect(() => {
+        // for the latest point, animate the word typewriter style 
+        if (visiblePoints.length > 0) {
+            const latestLocation = locations[visiblePoints.length - 1]?.name || "";
+            let currentLabel = "";
+            let index = 0;
+
+            const interval = setInterval(() => {
+            if (index < latestLocation.length) {
+                currentLabel += latestLocation[index];
+                setLocationLabels(prev => {
+                const updatedLabels = [...prev];
+                updatedLabels[visiblePoints.length - 1] = currentLabel;
+                return updatedLabels;
+                });
+                index++;
+            } else {
+                clearInterval(interval);
+            }
+            }, 100);
+
+            return () => clearInterval(interval);
+        }
+    }, [visiblePoints.length]);
 
     // should we make this one big screen? 
 
