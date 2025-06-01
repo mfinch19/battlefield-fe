@@ -2,7 +2,7 @@ import { useAtom } from 'jotai';
 import React, { useState } from 'react';
 
 import { atom } from 'jotai';
-import { locationsAtom } from '../atom';
+import { locationsAtom, visiblePointsAtom } from '../atom';
 
 type Message = {
     role: 'user' | 'assistant' | 'loading';
@@ -47,6 +47,7 @@ const Chat = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const [locations, setLocations] = useAtom(locationsAtom);
+    const [visiblePoints, setVisiblePoints] = useAtom(visiblePointsAtom);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMessage(e.target.value);
@@ -66,6 +67,8 @@ const Chat = () => {
 
         setMessages((prev) => [...prev, userMessage, loadingMessage]);
         setMessage('');
+
+        setVisiblePoints([]);
 
         setTimeout(() => {
             const mockResponse = {
