@@ -192,18 +192,20 @@ const Chat = () => {
             {/* Input */}
             <div className="border-t border-[#1a2b45] bg-[#050b1a] p-4">
                 <div className="flex items-center gap-2">
-                    <div className="flex-grow relative">
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={handleInputChange}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Enter tactical query..."
-                            disabled={isLoading}
-                            className="w-full p-3 bg-[#0a1628] text-cyan-200 placeholder-cyan-700 border border-cyan-900 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 font-mono"
-                        />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-cyan-600">
-                            {isLoading ? 'PROCESSING...' : 'READY'}
+                    <div className="flex-grow relative max-w-[95%]">
+                        <div className="w-full p-3 bg-[#0a1628] text-cyan-200 border border-cyan-900 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 font-mono">
+                            <input
+                                type="text"
+                                value={message}
+                                onChange={handleInputChange}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Enter tactical query..."
+                                disabled={isLoading}
+                                className="w-[90%] bg-transparent text-cyan-200 placeholder-cyan-700 focus:outline-none"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-cyan-600">
+                                {isLoading ? 'PROCESSING...' : 'READY'}
+                            </div>
                         </div>
                     </div>
                     <button
