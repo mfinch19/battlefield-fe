@@ -20,17 +20,19 @@ const Map = () => {
     const [visiblePoints, setVisiblePoints] = useAtom(visiblePointsAtom);
     const [locations, setLocations] = useAtom(locationsAtom);
 
-    const createOverlayMarker = (label: string) =>
+    const createFuturisticDot = (label: string) =>
         L.divIcon({
-          className: '',
-          html: `
-            <div class="overlay-marker">
-              <div class="overlay-ring"></div>
-              <div class="overlay-label">${label}</div>
+            className: '',
+            html: `
+            <div class="hud-dot">
+              <div class="hud-glow" style="position: absolute; left: 7px;"></div>
+              <div class="hud-label" style="position: absolute; top: -20px; left: calc(50% + 7px); transform: translateX(-50%); text-align: center;">
+                ${label}
+              </div>
             </div>
           `,
-          iconSize: [40, 30],
-          iconAnchor: [15, 15],
+            iconSize: [30, 30],
+            iconAnchor: [15, 15],
         });
 
     useEffect(() => {
@@ -56,7 +58,7 @@ const Map = () => {
                 } else {
                     clearInterval(interval);
                 }
-            }, 1000);
+            }, 300);
 
             return () => clearInterval(interval);
         }
@@ -76,17 +78,21 @@ const Map = () => {
                 url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
             />
             {visiblePoints.map((point, i) => (
-
-
-
                 <Marker
                     key={i}
                     position={[point.lat, point.lng]}
-                    icon={createOverlayMarker(`${i + 1}. ${locations[i]?.name}`)}
+                    icon={createFuturisticDot(`${locations[i]?.name.toLocaleUpperCase()}`)}
                 >
                     <Popup>
-                        <h3 className="font-bold text-sm">{i + 1}. {locations[i]?.name}</h3>
-                        <p className="text-xs">{locations[i]?.explanation}</p>
+                        <div className="hud-popup">
+                            <div className="hud-header font-mono" style={{ fontFamily: 'Orbitron-Bold', color: `rgb(255, 255, 255)` }}>
+                                {locations[i]?.name.toLocaleUpperCase()}
+                            </div>
+                            <div className="hud-body  font-mono">
+                                <h3></h3>
+                                <p>{locations[i]?.explanation}</p>
+                            </div>
+                        </div>
                     </Popup>
                 </Marker>
             ))}

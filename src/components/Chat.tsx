@@ -72,7 +72,6 @@ const Chat = () => {
 
         setMessages((prev) => [...prev, userMessage, loadingMessage]);
         setMessage('');
-
         setVisiblePoints([]);
 
         setTimeout(() => {
@@ -80,49 +79,64 @@ const Chat = () => {
                 reply: responseData.generalExplanation
             };
 
-            setMessages((prev) => [
-                ...prev.slice(0, -1),
-                { role: 'assistant', content: mockResponse.reply },
-            ]);
+            const fullReply = mockResponse.reply;
+            let index = 0;
 
-            triggerMapUpdate(mockResponse.reply);
+            // Replace loading with assistant
+            setMessages((prev) => [...prev.slice(0, -1), { role: 'assistant', content: '' }]);
 
-            setLocations(responseData.locations);
-            setIsLoading(false);
+            const interval = setInterval(() => {
+                index++;
+                setMessages((prev) => {
+                    const updated = [...prev];
+                    const assistantMsg = updated.find((m) => m.role === 'assistant');
+                    if (assistantMsg) assistantMsg.content = fullReply.slice(0, index);
+                    return [...updated];
+                });
+
+                if (index >= fullReply.length) {
+                    clearInterval(interval);
+                    setIsLoading(false);
+                    setLocations(responseData.locations);
+                    triggerMapUpdate(fullReply);
+                }
+            }, 10); // char-by-char
         }, 2000);
-        // try {
-        //   const res = await fetch('http://localhost:5000/api/chat', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ message: trimmedMessage }),
-        //   });
-
-        //   if (res.ok) {
-        //     const data = await res.json();
-
-        //     setMessages((prev) => [
-        //       ...prev.slice(0, -1),
-        //       { role: 'assistant', content: data.reply },
-        //     ]);
-
-        //     triggerMapUpdate(data.reply);
-        //   } else {
-        //     console.error('Failed to fetch response from backend');
-        //     setMessages((prev) => [
-        //       ...prev.slice(0, -1),
-        //       { role: 'assistant', content: 'Unable to retrieve battlefield data.' },
-        //     ]);
-        //   }
-        // } catch (error) {
-        //   console.error('Error:', error);
-        //   setMessages((prev) => [
-        //     ...prev.slice(0, -1),
-        //     { role: 'assistant', content: 'System error. Check comms uplink.' },
-        //   ]);
-        // } finally {
-        //   setIsLoading(false);
-        // }
     };
+
+    // try {
+    //   const res = await fetch('http://localhost:5000/api/chat', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ message: trimmedMessage }),
+    //   });
+
+    //   if (res.ok) {
+    //     const data = await res.json();
+
+    //     setMessages((prev) => [
+    //       ...prev.slice(0, -1),
+    //       { role: 'assistant', content: data.reply },
+    //     ]);
+
+    //     triggerMapUpdate(data.reply);
+    //   } else {
+    //     console.error('Failed to fetch response from backend');
+    //     setMessages((prev) => [
+    //       ...prev.slice(0, -1),
+    //       { role: 'assistant', content: 'Unable to retrieve battlefield data.' },
+    //     ]);
+    //   }
+    // } catch (error) {
+    //   console.error('Error:', error);
+    //   setMessages((prev) => [
+    //     ...prev.slice(0, -1),
+    //     { role: 'assistant', content: 'System error. Check comms uplink.' },
+    //   ]);
+    // } finally {
+    //   setIsLoading(false);
+    // }
+
 
     const triggerMapUpdate = (intel: string) => {
         console.log('Triggering map update based on response:', intel);
@@ -157,13 +171,12 @@ const Chat = () => {
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`px-4 py-3 max-w-xl rounded-md text-sm shadow-lg backdrop-blur-sm ${
-                                msg.role === 'user'
-                                    ? 'bg-cyan-400/10 border border-cyan-500/20 text-cyan-100'
-                                    : msg.role === 'assistant'
-                                        ? 'bg-[#0a1628] text-cyan-100 border border-cyan-900'
-                                        : 'bg-[#1a1c1e] text-cyan-300 italic animate-pulse'
-                            }`}
+                            className={`px-4 py-3 max-w-xl rounded-md text-sm shadow-lg backdrop-blur-sm ${msg.role === 'user'
+                                ? 'bg-cyan-400/10 border border-cyan-500/20 text-cyan-100'
+                                : msg.role === 'assistant'
+                                    ? 'bg-[#0a1628] text-cyan-100 border border-cyan-900'
+                                    : 'bg-[#1a1c1e] text-cyan-300 italic animate-pulse'
+                                }`}
                         >
                             {msg.role !== 'loading' && (
                                 <div className="text-xs text-cyan-500 mb-1">

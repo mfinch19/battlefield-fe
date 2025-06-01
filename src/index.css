@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@font-face {
+    font-family: 'Vipnagorgialla';
+    src: url('../public/VipnagorgiallaBd.otf') format('opentype');
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Orbitron-Bold';
+    src: url('../public/Orbitron-Bold.ttf') format('opentype');
+    font-weight: normal;
+    font-style: italic;
+}
+@font-face {
+    font-family: 'Vipnagorgialla';
+    src: url('../public/VipnagorgiallaBd.otf') format('opentype');
+    font-weight: normal;
+    font-style: italic;
+}
