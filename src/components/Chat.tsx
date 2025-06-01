@@ -74,41 +74,6 @@ const Chat = () => {
         setMessage('');
         setVisiblePoints([]);
 
-        // setTimeout(() => {
-        //     const mockResponse = {
-        //         reply: responseData.generalExplanation
-        //     };
-
-        //     const fullReply = mockResponse.reply;
-        //     let index = 0;
-
-        //     // Replace the last loading message with assistant
-        //     setMessages((prev) => {
-        //         const updated = [...prev];
-        //         updated[updated.length - 1] = { role: 'assistant', content: '' };
-        //         return updated;
-        //     });
-
-        //     const interval = setInterval(() => {
-        //         index++;
-        //         setMessages((prev) => {
-        //             const updated = [...prev];
-        //             const assistantMsg = updated[updated.length - 1]; // Only animate the last assistant message
-        //             if (assistantMsg && assistantMsg.role === 'assistant') {
-        //                 assistantMsg.content = fullReply.slice(0, index);
-        //             }
-        //             return updated;
-        //         });
-
-        //         if (index >= fullReply.length) {
-        //             clearInterval(interval);
-        //             setIsLoading(false);
-        //             setLocations(responseData.locations);
-        //             triggerMapUpdate(fullReply);
-        //         }
-        //     }, 10); // char-by-char
-        // }, 2000);
-
         try {
             const res = await fetch('http://localhost:8000/chat', {
                 method: 'POST',
@@ -118,26 +83,43 @@ const Chat = () => {
 
             if (res.ok) {
                 const data = await res.json();
-                console.log("Initial data:", data);
-
-                // Parse the stringified response
                 const parsedResponse = JSON.parse(data.response);
-                console.log("Parsed response:", parsedResponse);
+                const fullReply = parsedResponse.general_explanation;
 
-                // Clean location names to contain only alphabets
+                // Prepare cleaned locations for later use
                 const cleanedLocations = parsedResponse.locations.map((loc: any) => ({
                     ...loc,
-                    name: loc.name.replace(/[^a-zA-Z]/g, '')
+                    name: loc.name.replace(/[^a-zA-Z]/g, ''),
                 }));
 
-                setMessages((prev) => [
-                    ...prev.slice(0, -1),
-                    { role: 'assistant', content: parsedResponse.general_explanation },
-                ]);
-                setLocations(cleanedLocations);
+                // Replace loading message with empty assistant message for animation
+                setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { role: 'assistant', content: '' };
+                    return updated;
+                });
+
+                let index = 0;
+                const interval = setInterval(() => {
+                    index++;
+                    setMessages((prev) => {
+                        const updated = [...prev];
+                        const assistantMsg = updated[updated.length - 1];
+                        if (assistantMsg && assistantMsg.role === 'assistant') {
+                            assistantMsg.content = fullReply.slice(0, index);
+                        }
+                        return updated;
+                    });
+
+                    if (index >= fullReply.length) {
+                        clearInterval(interval);
+                        setIsLoading(false);
+                        setLocations(cleanedLocations); // ✅ Only set after animation
+                        triggerMapUpdate(fullReply);     // (optional, if needed after locations update)
+                    }
+                }, 10);
             } else {
                 console.error('Failed to fetch response from backend');
-
                 setMessages((prev) => [
                     ...prev.slice(0, -1),
                     { role: 'assistant', content: 'Unable to retrieve battlefield data.' },
@@ -149,10 +131,9 @@ const Chat = () => {
                 ...prev.slice(0, -1),
                 { role: 'assistant', content: 'System error. Check comms uplink.' },
             ]);
-        } finally {
-            setIsLoading(false);
         }
     };
+
 
 
 
@@ -168,7 +149,7 @@ const Chat = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                         <h1 className="text-xl font-bold tracking-wider text-cyan-400">
-                            BATTLEFIELD COMMAND CENTER <span className="text-xs text-cyan-500">v2.0</span>
+                            DEFENSE COMMAND CENTER <span className="text-xs text-cyan-500">v2.0</span>
                         </h1>
                         <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
