@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { useAtom } from "jotai";
+import coordinates from '../data/coordinates.json';
+
+import { locationsAtom } from "../atom";
 
 const points = [
     { lat: 48.6, lng: 38.0 },  // Bakhmut
@@ -13,15 +17,29 @@ const points = [
 
 const Map = () => {
     const [visiblePoints, setVisiblePoints] = useState<{ lat: number; lng: number }[]>([]);
+    const [locations, setLocations] = useAtom(locationsAtom);
 
-    // const customLabelIcon = (label: string) =>
-    //     L.divIcon({
-    //         className: "custom-label",
-    //         html: label,
-    //         iconSize: [60, 20], // optional sizing
-    //         iconAnchor: [0, 0],  // tweak to position it above marker
-    //     });
+    // when we get locations, need to turn it into coordinates 
+    useEffect(() => {
+        if (locations && locations.length > 0) {
+            let i = 0;
+            const newCoordinates = locations.map(location => {
+                const coordinate = coordinates[location.name as keyof typeof coordinates];
+                return coordinate ? { lat: coordinate.lat, lng: coordinate.lon } : null;
+            }).filter(coord => coord !== null);
 
+            const interval = setInterval(() => {
+                if (i < newCoordinates.length - 1) {
+                    setVisiblePoints(prev => [...prev, newCoordinates[i]]);
+                    i++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000); // 1 marker per second
+
+            return () => clearInterval(interval);
+        }
+    }, [locations]);
 
     useEffect(() => {
         let i = 0;
