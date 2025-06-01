@@ -74,74 +74,81 @@ const Chat = () => {
         setMessage('');
         setVisiblePoints([]);
 
-        setTimeout(() => {
-            const mockResponse = {
-                reply: responseData.generalExplanation
-            };
+        // setTimeout(() => {
+        //     const mockResponse = {
+        //         reply: responseData.generalExplanation
+        //     };
 
-            const fullReply = mockResponse.reply;
-            let index = 0;
+        //     const fullReply = mockResponse.reply;
+        //     let index = 0;
 
-            // Replace the last loading message with assistant
-            setMessages((prev) => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: 'assistant', content: '' };
-                return updated;
+        //     // Replace the last loading message with assistant
+        //     setMessages((prev) => {
+        //         const updated = [...prev];
+        //         updated[updated.length - 1] = { role: 'assistant', content: '' };
+        //         return updated;
+        //     });
+
+        //     const interval = setInterval(() => {
+        //         index++;
+        //         setMessages((prev) => {
+        //             const updated = [...prev];
+        //             const assistantMsg = updated[updated.length - 1]; // Only animate the last assistant message
+        //             if (assistantMsg && assistantMsg.role === 'assistant') {
+        //                 assistantMsg.content = fullReply.slice(0, index);
+        //             }
+        //             return updated;
+        //         });
+
+        //         if (index >= fullReply.length) {
+        //             clearInterval(interval);
+        //             setIsLoading(false);
+        //             setLocations(responseData.locations);
+        //             triggerMapUpdate(fullReply);
+        //         }
+        //     }, 10); // char-by-char
+        // }, 2000);
+
+        try {
+            const res = await fetch('http://0.0.0.0:8000/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: trimmedMessage }),
             });
 
-            const interval = setInterval(() => {
-                index++;
-                setMessages((prev) => {
-                    const updated = [...prev];
-                    const assistantMsg = updated[updated.length - 1]; // Only animate the last assistant message
-                    if (assistantMsg && assistantMsg.role === 'assistant') {
-                        assistantMsg.content = fullReply.slice(0, index);
-                    }
-                    return updated;
-                });
+            if (res.ok) {
+                const data = await res.json();
+                console.log("Initial data:", data);
 
-                if (index >= fullReply.length) {
-                    clearInterval(interval);
-                    setIsLoading(false);
-                    setLocations(responseData.locations);
-                    triggerMapUpdate(fullReply);
-                }
-            }, 10); // char-by-char
-        }, 2000);
+                // Parse the stringified response
+                const parsedResponse = JSON.parse(data.response);
+                console.log("Parsed response:", parsedResponse);
+
+                setMessages((prev) => [
+                    ...prev.slice(0, -1),
+                    { role: 'assistant', content: parsedResponse.general_explanation },
+                ]);
+                setLocations(parsedResponse.locations);
+            } else {
+                console.error('Failed to fetch response from backend');
+
+                setMessages((prev) => [
+                    ...prev.slice(0, -1),
+                    { role: 'assistant', content: 'Unable to retrieve battlefield data.' },
+                ]);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            setMessages((prev) => [
+                ...prev.slice(0, -1),
+                { role: 'assistant', content: 'System error. Check comms uplink.' },
+            ]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    // try {
-    //   const res = await fetch('http://localhost:5000/api/chat', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ message: trimmedMessage }),
-    //   });
 
-    //   if (res.ok) {
-    //     const data = await res.json();
-
-    //     setMessages((prev) => [
-    //       ...prev.slice(0, -1),
-    //       { role: 'assistant', content: data.reply },
-    //     ]);
-
-    //     triggerMapUpdate(data.reply);
-    //   } else {
-    //     console.error('Failed to fetch response from backend');
-    //     setMessages((prev) => [
-    //       ...prev.slice(0, -1),
-    //       { role: 'assistant', content: 'Unable to retrieve battlefield data.' },
-    //     ]);
-    //   }
-    // } catch (error) {
-    //   console.error('Error:', error);
-    //   setMessages((prev) => [
-    //     ...prev.slice(0, -1),
-    //     { role: 'assistant', content: 'System error. Check comms uplink.' },
-    //   ]);
-    // } finally {
-    //   setIsLoading(false);
-    // }
 
 
     const triggerMapUpdate = (intel: string) => {
