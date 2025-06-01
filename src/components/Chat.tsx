@@ -26,17 +26,17 @@ const responseData = {
         {
             name: "Dnipro",
             explanation:
-                "Logistics patterns indicate stockpiling of anti-air munitions near Dnipro’s western corridor. Convoy telemetry from thermal imaging satellites shows 12+ heavy transports arriving over 48 hours. Possible preparation for layered defense or launchpad construction.",
+                "Logistics patterns indicate stockpiling of anti-air munitions near Dnipro's western corridor. Convoy telemetry from thermal imaging satellites shows 12+ heavy transports arriving over 48 hours. Possible preparation for layered defense or launchpad construction.",
         },
         {
             name: "Zaporizhzhia",
             explanation:
-                "AI anomaly detection flagged heat anomalies on Zaporizhzhia’s southeastern perimeter. Independent corroboration from geofenced mobile pings suggests troop density exceeds baseline by 3.6x. Pattern matches staging prior to previous incursions.",
+                "AI anomaly detection flagged heat anomalies on Zaporizhzhia's southeastern perimeter. Independent corroboration from geofenced mobile pings suggests troop density exceeds baseline by 3.6x. Pattern matches staging prior to previous incursions.",
         },
         {
             name: "Mykolaiv",
             explanation:
-                "Increased drone jamming attempts logged from Mykolaiv’s southern flank. Frequency hopping observed across civilian and encrypted channels. Suggests testing EW suppression capabilities, likely prelude to broader signal blackouts.",
+                "Increased drone jamming attempts logged from Mykolaiv's southern flank. Frequency hopping observed across civilian and encrypted channels. Suggests testing EW suppression capabilities, likely prelude to broader signal blackouts.",
         }
     ]
 }
@@ -53,7 +53,12 @@ const Chat = () => {
         setMessage(e.target.value);
     };
 
-    
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
 
     const [generalExplanation, setGeneralExplanation] = useState("");
 
@@ -124,27 +129,47 @@ const Chat = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-[#0b0c10] text-white font-sans">
+        <div className="flex flex-col h-screen bg-[#030711] text-white font-mono">
             {/* Header */}
-            <div className="p-5 border-b border-[#1f2937] bg-[#111214] shadow-sm">
-                <h1 className="text-xl font-semibold tracking-wide text-green-400">Battlefield AI</h1>
+            <div className="p-5 border-b border-[#1a2b45] bg-[#050b1a] shadow-lg">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                        <h1 className="text-xl font-bold tracking-wider text-cyan-400">
+                            BATTLEFIELD COMMAND CENTER <span className="text-xs text-cyan-500">v2.0</span>
+                        </h1>
+                        <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-green-400">SYSTEM ONLINE</span>
+                        </div>
+                    </div>
+                    <div className="text-xs text-cyan-600">
+                        {new Date().toLocaleTimeString()} UTC
+                    </div>
+                </div>
             </div>
 
             {/* Chat Window */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-[#0b0c10]">
+            <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-[#030711] relative">
+                <div className="absolute inset-0 bg-[url('/grid.png')] opacity-5 pointer-events-none"></div>
                 {messages.map((msg, idx) => (
                     <div
                         key={idx}
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`px-4 py-3 max-w-xl rounded-xl text-sm shadow ${msg.role === 'user'
-                                    ? 'bg-green-400/10 border border-green-500/20 text-green-100'
+                            className={`px-4 py-3 max-w-xl rounded-md text-sm shadow-lg backdrop-blur-sm ${
+                                msg.role === 'user'
+                                    ? 'bg-cyan-400/10 border border-cyan-500/20 text-cyan-100'
                                     : msg.role === 'assistant'
-                                        ? 'bg-[#161819] text-gray-100 border border-gray-700'
-                                        : 'bg-[#1a1c1e] text-green-300 italic animate-pulse'
-                                }`}
+                                        ? 'bg-[#0a1628] text-cyan-100 border border-cyan-900'
+                                        : 'bg-[#1a1c1e] text-cyan-300 italic animate-pulse'
+                            }`}
                         >
+                            {msg.role !== 'loading' && (
+                                <div className="text-xs text-cyan-500 mb-1">
+                                    {msg.role === 'user' ? 'COMMAND INPUT' : 'SYSTEM RESPONSE'}
+                                </div>
+                            )}
                             {msg.content}
                         </div>
                     </div>
@@ -152,22 +177,31 @@ const Chat = () => {
             </div>
 
             {/* Input */}
-            <div className="border-t border-[#1f2937] bg-[#111214] p-4">
+            <div className="border-t border-[#1a2b45] bg-[#050b1a] p-4">
                 <div className="flex items-center gap-2">
-                    <input
-                        type="text"
-                        value={message}
-                        onChange={handleInputChange}
-                        placeholder="e.g. Where have artillery strikes been concentrated?"
-                        disabled={isLoading}
-                        className="flex-grow p-3 bg-[#1f2023] text-green-200 placeholder-green-500 border border-green-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
-                    />
+                    <div className="flex-grow relative">
+                        <input
+                            type="text"
+                            value={message}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Enter tactical query..."
+                            disabled={isLoading}
+                            className="w-full p-3 bg-[#0a1628] text-cyan-200 placeholder-cyan-700 border border-cyan-900 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 disabled:opacity-50 font-mono"
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-cyan-600">
+                            {isLoading ? 'PROCESSING...' : 'READY'}
+                        </div>
+                    </div>
                     <button
                         onClick={handleSendMessage}
                         disabled={isLoading}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 transition rounded-lg text-sm font-medium text-white disabled:opacity-50"
+                        className="px-6 py-3 bg-cyan-800 hover:bg-cyan-700 transition rounded-md text-sm font-bold text-white disabled:opacity-50 flex items-center space-x-2 border border-cyan-600"
                     >
-                        Submit
+                        <span>EXECUTE</span>
+                        {isLoading && (
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        )}
                     </button>
                 </div>
             </div>
