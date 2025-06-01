@@ -110,7 +110,7 @@ const Chat = () => {
         // }, 2000);
 
         try {
-            const res = await fetch('http://0.0.0.0:8000/chat', {
+            const res = await fetch('http://localhost:8000/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: trimmedMessage }),
@@ -124,11 +124,17 @@ const Chat = () => {
                 const parsedResponse = JSON.parse(data.response);
                 console.log("Parsed response:", parsedResponse);
 
+                // Clean location names to contain only alphabets
+                const cleanedLocations = parsedResponse.locations.map((loc: any) => ({
+                    ...loc,
+                    name: loc.name.replace(/[^a-zA-Z]/g, '')
+                }));
+
                 setMessages((prev) => [
                     ...prev.slice(0, -1),
                     { role: 'assistant', content: parsedResponse.general_explanation },
                 ]);
-                setLocations(parsedResponse.locations);
+                setLocations(cleanedLocations);
             } else {
                 console.error('Failed to fetch response from backend');
 
